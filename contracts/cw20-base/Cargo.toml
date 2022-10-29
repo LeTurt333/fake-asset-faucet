@@ -1,0 +1,33 @@
+[package]
+name = "cw20-base"
+description = "Extended cw20 base contract"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+publish.workspace = true
+keywords.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[features]
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-std.workspace = true
+cosmwasm-schema.workspace = true
+schemars.workspace = true
+serde.workspace = true
+cw-storage-plus.workspace = true
+
+cw-utils = "0.15.0"
+cw2 = "0.15.0"
+cw20 = "0.15.0"
+semver = "1"
+thiserror = "1.0.23"
+
+[dev-dependencies]
+cw-multi-test = "0.15.0"

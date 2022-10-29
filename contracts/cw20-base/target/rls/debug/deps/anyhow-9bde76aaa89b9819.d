@@ -1,0 +1,15 @@
+/home/turtle/fake_asset_faucet/cw20-base/target/rls/debug/deps/anyhow-9bde76aaa89b9819.rmeta: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/backtrace.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/chain.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/context.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/ensure.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/error.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/fmt.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/kind.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/macros.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/ptr.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/wrapper.rs
+
+/home/turtle/fake_asset_faucet/cw20-base/target/rls/debug/deps/anyhow-9bde76aaa89b9819.d: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/backtrace.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/chain.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/context.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/ensure.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/error.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/fmt.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/kind.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/macros.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/ptr.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/wrapper.rs
+
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/lib.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/backtrace.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/chain.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/context.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/ensure.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/error.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/fmt.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/kind.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/macros.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/ptr.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.65/src/wrapper.rs:

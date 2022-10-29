@@ -1,0 +1,47 @@
+[package]
+name = "fake-asset-faucet-hub"
+description = "Hub contract for testnet cs-tokens and nfts"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+publish.workspace = true
+keywords.workspace = true
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "artifacts/*",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-std.workspace = true
+cosmwasm-schema.workspace = true
+schemars.workspace = true
+serde.workspace = true
+cw-storage-plus.workspace = true
+
+cw-utils = "0.16.0"
+cw2 = "0.15.0"
+cw721 = "0.15.0" 
+cw721-base = { path = "../cw721-base", features = [
+  "library",
+] }
+cw721-neon-peepz = {path = "../cw721-neon-peepz", features = [
+  "library",
+] }
+cw721-shitty-kittyz = {path ="../cw721-shitty-kittyz", features = [
+  "library",
+] }
+thiserror = { version = "1.0.31" }
+cw20 = "0.15.0"
+cw20-base = {version = "0.15.0", features = ["library"]}

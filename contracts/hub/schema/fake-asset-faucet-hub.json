@@ -1,0 +1,252 @@
+{
+  "contract_name": "fake-asset-faucet-hub",
+  "contract_version": "0.1.0",
+  "idl_version": "1.0.0",
+  "instantiate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InstantiateMsg",
+    "type": "object",
+    "properties": {
+      "admin": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "execute": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ExecuteMsg",
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "update_admin"
+        ],
+        "properties": {
+          "update_admin": {
+            "type": "object",
+            "required": [
+              "new_admin"
+            ],
+            "properties": {
+              "new_admin": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "init_faucet_neon_peepz"
+        ],
+        "properties": {
+          "init_faucet_neon_peepz": {
+            "type": "object",
+            "required": [
+              "code_id"
+            ],
+            "properties": {
+              "code_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "init_faucet_shitty_kittyz"
+        ],
+        "properties": {
+          "init_faucet_shitty_kittyz": {
+            "type": "object",
+            "required": [
+              "code_id"
+            ],
+            "properties": {
+              "code_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "init_faucet_cw20_one"
+        ],
+        "properties": {
+          "init_faucet_cw20_one": {
+            "type": "object",
+            "required": [
+              "code_id"
+            ],
+            "properties": {
+              "code_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "init_faucet_cw20_two"
+        ],
+        "properties": {
+          "init_faucet_cw20_two": {
+            "type": "object",
+            "required": [
+              "code_id"
+            ],
+            "properties": {
+              "code_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "init_faucet_cw20_tre"
+        ],
+        "properties": {
+          "init_faucet_cw20_tre": {
+            "type": "object",
+            "required": [
+              "code_id"
+            ],
+            "properties": {
+              "code_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "hit_faucet_nft"
+        ],
+        "properties": {
+          "hit_faucet_nft": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "hit_faucet_cw20s"
+        ],
+        "properties": {
+          "hit_faucet_cw20s": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ]
+  },
+  "query": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "QueryMsg",
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "get_state"
+        ],
+        "properties": {
+          "get_state": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ]
+  },
+  "migrate": null,
+  "sudo": null,
+  "responses": {
+    "get_state": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GetStateResponse",
+      "type": "object",
+      "required": [
+        "admin",
+        "cw20_one_faucet_address",
+        "cw20_tre_faucet_address",
+        "cw20_two_faucet_address",
+        "neon_peepz_address",
+        "neon_peepz_count",
+        "shitty_kittyz_address",
+        "shitty_kittyz_count"
+      ],
+      "properties": {
+        "admin": {
+          "type": "string"
+        },
+        "cw20_one_faucet_address": {
+          "type": "string"
+        },
+        "cw20_tre_faucet_address": {
+          "type": "string"
+        },
+        "cw20_two_faucet_address": {
+          "type": "string"
+        },
+        "neon_peepz_address": {
+          "type": "string"
+        },
+        "neon_peepz_count": {
+          "type": "string"
+        },
+        "shitty_kittyz_address": {
+          "type": "string"
+        },
+        "shitty_kittyz_count": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,6 @@
+/home/turtle/fake_asset_faucet/cw20-base/target/rls/debug/deps/ff-5926a8fbef0ed411.rmeta: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/ff-0.12.0/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/ff-0.12.0/src/batch.rs
+
+/home/turtle/fake_asset_faucet/cw20-base/target/rls/debug/deps/ff-5926a8fbef0ed411.d: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/ff-0.12.0/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/ff-0.12.0/src/batch.rs
+
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/ff-0.12.0/src/lib.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/ff-0.12.0/src/batch.rs:

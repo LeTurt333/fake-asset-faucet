@@ -1,0 +1,12 @@
+/home/turtle/fake_asset_faucet/cw20-base/target/debug/deps/pkcs8-2906676ad341648f.rmeta: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/error.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/private_key_info.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/traits.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/version.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/../README.md
+
+/home/turtle/fake_asset_faucet/cw20-base/target/debug/deps/libpkcs8-2906676ad341648f.rlib: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/error.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/private_key_info.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/traits.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/version.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/../README.md
+
+/home/turtle/fake_asset_faucet/cw20-base/target/debug/deps/pkcs8-2906676ad341648f.d: /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/lib.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/error.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/private_key_info.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/traits.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/version.rs /home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/../README.md
+
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/lib.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/error.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/private_key_info.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/traits.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/version.rs:
+/home/turtle/.cargo/registry/src/github.com-1ecc6299db9ec823/pkcs8-0.9.0/src/../README.md:
