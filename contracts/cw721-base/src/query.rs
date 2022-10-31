@@ -1,11 +1,13 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use cosmwasm_schema::cw_serde;
 
 use cosmwasm_std::{to_binary, Addr, Binary, BlockInfo, Deps, Env, Order, StdError, StdResult};
 
 use cw721::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, CustomMsg,
-    Cw721Query, Expiration, NftInfoResponse, NumTokensResponse, OperatorsResponse, OwnerOfResponse,
+    Cw721Query, 
+    Expiration, NftInfoResponse, NumTokensResponse, OperatorsResponse, OwnerOfResponse,
     TokensResponse,
 };
 use cw_storage_plus::Bound;
@@ -16,6 +18,104 @@ use crate::state::{Approval, Cw721Contract, TokenInfo};
 
 const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 100;
+const MAX_ALLTOKENINFO_LIMIT: u32 = 30;
+
+//pub trait Cw721Query<T>
+//where
+//    T: Serialize + DeserializeOwned + Clone,
+//{
+//    // TODO: use custom error?
+//    // How to handle the two derived error types?
+//
+//    fn contract_info(&self, deps: Deps) -> StdResult<ContractInfoResponse>;
+//
+//    fn num_tokens(&self, deps: Deps) -> StdResult<NumTokensResponse>;
+//
+//    fn nft_info(&self, deps: Deps, token_id: String) -> StdResult<NftInfoResponse<T>>;
+//
+//    fn owner_of(
+//        &self,
+//        deps: Deps,
+//        env: Env,
+//        token_id: String,
+//        include_expired: bool,
+//    ) -> StdResult<OwnerOfResponse>;
+//
+//    fn operators(
+//        &self,
+//        deps: Deps,
+//        env: Env,
+//        owner: String,
+//        include_expired: bool,
+//        start_after: Option<String>,
+//        limit: Option<u32>,
+//    ) -> StdResult<OperatorsResponse>;
+//
+//    fn approval(
+//        &self,
+//        deps: Deps,
+//        env: Env,
+//        token_id: String,
+//        spender: String,
+//        include_expired: bool,
+//    ) -> StdResult<ApprovalResponse>;
+//
+//    fn approvals(
+//        &self,
+//        deps: Deps,
+//        env: Env,
+//        token_id: String,
+//        include_expired: bool,
+//    ) -> StdResult<ApprovalsResponse>;
+//
+//    fn tokens(
+//        &self,
+//        deps: Deps,
+//        owner: String,
+//        start_after: Option<String>,
+//        limit: Option<u32>,
+//    ) -> StdResult<TokensResponse>;
+//
+//    fn all_tokens(
+//        &self,
+//        deps: Deps,
+//        start_after: Option<String>,
+//        limit: Option<u32>,
+//    ) -> StdResult<TokensResponse>;
+//
+//    fn all_nft_info(
+//        &self,
+//        deps: Deps,
+//        env: Env,
+//        token_id: String,
+//        include_expired: bool,
+//    ) -> StdResult<AllNftInfoResponse<T>>;
+//
+//    fn all_tokens_info(
+//        &self,
+//        deps: Deps,
+//        owner_addr: String,
+//        start_after: Option<String>,
+//        limit: Option<u32>,
+//    ) -> StdResult<AllTokensInfoResponse<T>>;
+//}
+
+
+#[cw_serde]
+pub struct AllTokensInfoResponse<T> {
+    /// Universal resource identifier for this NFT
+    /// Should point to a JSON file that conforms to the ERC721
+    /// Metadata JSON Schema
+    // ~~~~~~~~ pub token_uri: Option<String>,
+    /// You can add any custom metadata here when you extend cw721-base
+    // ~~~~~~~~ pub extension: T,
+    // ~~~~~~~~ pub token_id: String,
+    // vec of tokens owned by address
+    // String = token_id
+    // T = Any custom metadata
+    // Option<String> = token_uri
+    pub all_tokens_info: Vec<(String, T, Option<String>)>,
+}
 
 impl<'a, T, C, E, Q> Cw721Query<T> for Cw721Contract<'a, T, C, E, Q>
 where
@@ -40,6 +140,47 @@ where
             extension: info.extension,
         })
     }
+
+    /*fn all_tokens_info(
+        &self, 
+        deps: Deps, 
+        owner_addr: String, 
+        start_after: Option<String>, 
+        limit: Option<u32>
+    ) -> StdResult<AllTokensInfoResponse<T>> {
+        let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_ALLTOKENINFO_LIMIT) as usize;
+        let start = start_after.map(|s| Bound::ExclusiveRaw(s.into()));
+
+        let owner_addr = deps.api.addr_validate(&owner_addr)?;
+
+        let owners_tokens: Vec<String> = self
+            .tokens
+            .idx
+            .owner
+            .prefix(owner_addr)
+            .keys(deps.storage, start, None, Order::Ascending)
+            .take(limit)
+            .map(|token_id| {
+                let info = self.tokens.load(deps.storage, &token_id)?;
+                (token_id, info.extension, info.token_uri)
+                }
+            )
+            .collect::<StdResult<Vec<_>>>()?;
+
+        let owners_tokens_info: Vec<(String, T, Option<String>)> = owners_tokens
+            .iter()
+            .map(|token_id| {
+                    let info = self.tokens.load(deps.storage, &token_id)?;
+                    (token_id, info.extension, info.token_uri)
+                }
+            )
+            .collect::<StdResult<Vec<_>>>()?;
+
+        Ok(AllTokensInfoResponse {
+            all_tokens_info: owners_tokens_info,
+        })
+
+    }*/
 
     fn owner_of(
         &self,
@@ -207,6 +348,78 @@ where
     }
 }
 
+// This is an extension trait.
+// You can force all its implementors to implement also some external trait,
+// so that two trait bounds essentially collapse into one.
+pub trait AllTokensInfoExt<T> {
+    fn all_tokens_info(
+        &self,
+        deps: Deps,
+        owner_addr: String,
+        start_after: Option<String>,
+        limit: Option<u32>,
+    ) -> StdResult<AllTokensInfoResponse<T>>;
+}
+
+// And this is the "blanket" implementation,
+// covering all the types necessary.
+//impl<T> HelperTrait for T where T: Debug 
+impl<'a, T, C, E, Q> AllTokensInfoExt<T> for Cw721Contract<'a, T, C, E, Q> 
+where
+    Cw721Contract<'a, T, C, E, Q>: Cw721Query<T>,
+    T: Serialize + DeserializeOwned + Clone,
+    C: CustomMsg,
+    E: CustomMsg,
+    Q: CustomMsg,
+
+{
+    fn all_tokens_info(
+        &self,
+        deps: Deps,
+        owner_addr: String,
+        start_after: Option<String>,
+        limit: Option<u32>,
+    ) -> StdResult<AllTokensInfoResponse<T>> {
+        let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_ALLTOKENINFO_LIMIT) as usize;
+        let start = start_after.map(|s| Bound::ExclusiveRaw(s.into()));
+
+        let owner_addr = deps.api.addr_validate(&owner_addr)?;
+
+        let owners_tokens: Vec<String> = self
+            .tokens
+            .idx
+            .owner
+            .prefix(owner_addr)
+            .keys(deps.storage, start, None, Order::Ascending)
+            .take(limit)
+            //.map(|token_id| {
+            //    let info = self.tokens.load(deps.storage, &token_id)?;
+            //    (token_id, info.extension, info.token_uri)
+            //    }
+            //)
+            .collect::<StdResult<Vec<_>>>()?;
+
+        let owners_tokens_info: Vec<(String, T, Option<String>)> = owners_tokens
+            .iter()
+            .map(|token_id| -> StdResult<(String, T, Option<String>)> {
+                    let info = self.tokens.load(deps.storage, &token_id);
+
+                    match info {
+                        Ok(x) => {return Ok((token_id.clone(), x.extension, x.token_uri))},
+                        Err(e) => {return Err(e)},
+                    }
+
+                    //(token_id, info.extension, info.token_uri)
+                }
+            )
+            .collect::<StdResult<Vec<_>>>()?;
+
+        Ok(AllTokensInfoResponse {
+            all_tokens_info: owners_tokens_info,
+        })
+    }
+}
+
 impl<'a, T, C, E, Q> Cw721Contract<'a, T, C, E, Q>
 where
     T: Serialize + DeserializeOwned + Clone,
@@ -281,6 +494,9 @@ where
                 to_binary(&self.approvals(deps, env, token_id, include_expired.unwrap_or(false))?)
             }
             QueryMsg::Extension { msg: _ } => Ok(Binary::default()),
+            QueryMsg::AllTokensInfo { owner_addr, start_after, limit } => {
+                to_binary(&self.all_tokens_info(deps, owner_addr, start_after, limit)?)
+            }
         }
     }
 }

@@ -148,6 +148,12 @@ pub enum QueryMsg<Q> {
     Extension {
         msg: Q,
     },
+    
+    AllTokensInfo {
+        owner_addr: String,
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
 }
 
 /// Shows who can mint these tokens

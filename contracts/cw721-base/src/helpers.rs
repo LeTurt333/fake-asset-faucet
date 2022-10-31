@@ -11,7 +11,7 @@ use cw721::{
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::{ExecuteMsg, QueryMsg};
+use crate::{ExecuteMsg, QueryMsg, query::AllTokensInfoResponse};
 
 #[cw_serde]
 pub struct Cw721Contract<Q: CustomMsg, E: CustomMsg>(
@@ -174,6 +174,18 @@ impl<Q: CustomMsg, E: CustomMsg> Cw721Contract<Q, E> {
         limit: Option<u32>,
     ) -> StdResult<TokensResponse> {
         let req = QueryMsg::AllTokens { start_after, limit };
+        self.query(querier, req)
+    }
+
+    // Get all tokens owned by an address, returns vec<token_id + extension + token_uri>
+    pub fn all_tokens_info<T: Into<String>, U: DeserializeOwned>(
+        &self,
+        querier: &QuerierWrapper,
+        owner_addr: T,
+        start_after: Option<String>,
+        limit: Option<u32>,
+    ) -> StdResult<AllTokensInfoResponse<U>> {
+        let req = QueryMsg::AllTokensInfo { owner_addr: owner_addr.into(), start_after, limit };
         self.query(querier, req)
     }
 

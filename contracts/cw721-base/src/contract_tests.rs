@@ -1,15 +1,43 @@
 #![cfg(test)]
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{from_binary, to_binary, CosmosMsg, DepsMut, Empty, Response, WasmMsg};
 
 use cw721::{
-    Approval, ApprovalResponse, ContractInfoResponse, Cw721Query, Cw721ReceiveMsg, Expiration,
-    NftInfoResponse, OperatorsResponse, OwnerOfResponse,
+    Approval, ApprovalResponse, ContractInfoResponse, Cw721ReceiveMsg, Expiration,
+    NftInfoResponse, OperatorsResponse, Cw721Query, OwnerOfResponse, AllNftInfoResponse,
 };
 
+use crate::query::{AllTokensInfoExt, AllTokensInfoResponse};
+
 use crate::{
-    ContractError, Cw721Contract, ExecuteMsg, Extension, InstantiateMsg, MintMsg, QueryMsg,
+    ContractError, Cw721Contract, ExecuteMsg, InstantiateMsg, MintMsg, QueryMsg,
 };
+
+#[cw_serde]
+pub struct Trait {
+    pub display_type: Option<String>,
+    pub trait_type: String,
+    pub value: String,
+}
+
+// see: https://docs.opensea.io/docs/metadata-standards
+#[cw_serde]
+#[derive(Default)]
+pub struct Metadata {
+    pub name: Option<String>,
+    pub image: Option<String>,
+    pub description: Option<String>,
+    pub attributes: Option<Vec<Trait>>,
+
+    pub image_data: Option<String>,
+    pub external_url: Option<String>,
+    pub background_color: Option<String>,
+    pub animation_url: Option<String>,
+    pub youtube_url: Option<String>,
+}
+
+pub type Extension = Option<Metadata>;
 
 const MINTER: &str = "merlin";
 const CONTRACT_NAME: &str = "Magic Power";
@@ -759,4 +787,99 @@ fn query_tokens_by_owner() {
         .tokens(deps.as_ref(), demeter, Some(by_demeter[0].clone()), Some(3))
         .unwrap();
     assert_eq!(&by_demeter[1..], &tokens.tokens[..]);
+}
+
+
+#[test]
+fn query_all_nft_info_by_ownerxxxxxxx() {
+    let mut deps = mock_dependencies();
+    let contract = setup_contract(deps.as_mut());
+    let minter = mock_info(MINTER, &[]);
+
+    // Mint some tokens
+    let demeter = String::from("demeter");
+    //let ceres = String::from("ceres");
+
+
+    let token_id1 = "grow1".to_string();
+    let token_id2 = "grow2".to_string();
+    let token_id3 = "sing".to_string();
+
+    let mint_msg = ExecuteMsg::Mint(MintMsg::<Extension> {
+        count: 55,
+        token_id: token_id1.clone(),
+        owner: demeter.clone(),
+        token_uri: Some("https://owner_demeter.example.com/token".to_string()),
+        extension: Some(Metadata {
+            name: Some("demeter_token_1".to_string()),
+            description: Some("Some fake metadata 1".to_string()),
+            ..Metadata::default()
+        }),
+    });
+    contract
+        .execute(deps.as_mut(), mock_env(), minter.clone(), mint_msg)
+        .unwrap();
+
+    let mint_msg = ExecuteMsg::Mint(MintMsg::<Extension> {
+        count: 56,
+        token_id: token_id2.clone(),
+        owner: demeter.clone(),
+        token_uri: Some("https://owner_demeter.example.com/token_2".to_string()),
+        extension: Some(Metadata {
+            name: Some("demeter_token_2".to_string()),
+            description: Some("Some fake metadata 2".to_string()),
+            ..Metadata::default()
+        }),
+    });
+    contract
+        .execute(deps.as_mut(), mock_env(), minter.clone(), mint_msg)
+        .unwrap();
+
+    let mint_msg = ExecuteMsg::Mint(MintMsg::<Extension> {
+        count: 57,
+        token_id: token_id3.clone(),
+        owner: demeter.clone(),
+        token_uri: Some("https://owner_demeter.example.com/token_3".to_string()),
+        extension: Some(Metadata {
+            name: Some("demeter_token_3".to_string()),
+            description: Some("Some fake metadata 3".to_string()),
+            ..Metadata::default()
+        }),
+    });
+    contract
+        .execute(deps.as_mut(), mock_env(), minter.clone(), mint_msg)
+        .unwrap();
+
+
+    // returns Vec<(String, Extension, Option<String>)
+    // as Vec<(token_id, Metadata, token_uri)>
+    let all_tokens_w_info_demeter_actual: AllTokensInfoResponse<_> = contract
+        .all_tokens_info(deps.as_ref(), demeter.clone(), None, None)
+        .unwrap();
+    
+    
+    let expected = vec![
+        (token_id1.clone(), 
+        Some(Metadata {
+            name: Some("demeter_token_1".to_string()),
+            description: Some("Some fake metadata 1".to_string()),
+            ..Metadata::default()}),
+        Some("https://owner_demeter.example.com/token".to_string())),
+        (token_id2.clone(), 
+        Some(Metadata {
+            name: Some("demeter_token_2".to_string()),
+            description: Some("Some fake metadata 2".to_string()),
+            ..Metadata::default()}),
+        Some("https://owner_demeter.example.com/token_2".to_string())),
+        (token_id3.clone(), 
+        Some(Metadata {
+            name: Some("demeter_token_3".to_string()),
+            description: Some("Some fake metadata 3".to_string()),
+            ..Metadata::default()}),
+        Some("https://owner_demeter.example.com/token_3".to_string()))
+    ];
+
+    assert!(all_tokens_w_info_demeter_actual.all_tokens_info.contains(&expected[0]));
+    assert!(all_tokens_w_info_demeter_actual.all_tokens_info.contains(&expected[1]));
+    assert!(all_tokens_w_info_demeter_actual.all_tokens_info.contains(&expected[2]));
 }
