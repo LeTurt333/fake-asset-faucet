@@ -177,7 +177,8 @@ impl<Q: CustomMsg, E: CustomMsg> Cw721Contract<Q, E> {
         self.query(querier, req)
     }
 
-    // Get all tokens owned by an address, returns vec<token_id + extension + token_uri>
+    // Gets all tokens + each tokens info that are owned by an address
+    // Returns Vec<token_id + extension + token_uri>
     pub fn all_tokens_info<T: Into<String>, U: DeserializeOwned>(
         &self,
         querier: &QuerierWrapper,

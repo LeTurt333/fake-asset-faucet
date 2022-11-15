@@ -20,86 +20,6 @@ const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 100;
 const MAX_ALLTOKENINFO_LIMIT: u32 = 30;
 
-//pub trait Cw721Query<T>
-//where
-//    T: Serialize + DeserializeOwned + Clone,
-//{
-//    // TODO: use custom error?
-//    // How to handle the two derived error types?
-//
-//    fn contract_info(&self, deps: Deps) -> StdResult<ContractInfoResponse>;
-//
-//    fn num_tokens(&self, deps: Deps) -> StdResult<NumTokensResponse>;
-//
-//    fn nft_info(&self, deps: Deps, token_id: String) -> StdResult<NftInfoResponse<T>>;
-//
-//    fn owner_of(
-//        &self,
-//        deps: Deps,
-//        env: Env,
-//        token_id: String,
-//        include_expired: bool,
-//    ) -> StdResult<OwnerOfResponse>;
-//
-//    fn operators(
-//        &self,
-//        deps: Deps,
-//        env: Env,
-//        owner: String,
-//        include_expired: bool,
-//        start_after: Option<String>,
-//        limit: Option<u32>,
-//    ) -> StdResult<OperatorsResponse>;
-//
-//    fn approval(
-//        &self,
-//        deps: Deps,
-//        env: Env,
-//        token_id: String,
-//        spender: String,
-//        include_expired: bool,
-//    ) -> StdResult<ApprovalResponse>;
-//
-//    fn approvals(
-//        &self,
-//        deps: Deps,
-//        env: Env,
-//        token_id: String,
-//        include_expired: bool,
-//    ) -> StdResult<ApprovalsResponse>;
-//
-//    fn tokens(
-//        &self,
-//        deps: Deps,
-//        owner: String,
-//        start_after: Option<String>,
-//        limit: Option<u32>,
-//    ) -> StdResult<TokensResponse>;
-//
-//    fn all_tokens(
-//        &self,
-//        deps: Deps,
-//        start_after: Option<String>,
-//        limit: Option<u32>,
-//    ) -> StdResult<TokensResponse>;
-//
-//    fn all_nft_info(
-//        &self,
-//        deps: Deps,
-//        env: Env,
-//        token_id: String,
-//        include_expired: bool,
-//    ) -> StdResult<AllNftInfoResponse<T>>;
-//
-//    fn all_tokens_info(
-//        &self,
-//        deps: Deps,
-//        owner_addr: String,
-//        start_after: Option<String>,
-//        limit: Option<u32>,
-//    ) -> StdResult<AllTokensInfoResponse<T>>;
-//}
-
 
 #[cw_serde]
 pub struct AllTokensInfoResponse<T> {
@@ -295,12 +215,19 @@ where
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
         let start = start_after.map(|s| Bound::ExclusiveRaw(s.into()));
 
+        // start is token_id, which is being saved as the primary key in the indexed map
+
+        // so right now my primary key is (Addr, listing_id),,
+        // which is what .keys is a range over
+
+        // .prefix_range is setting a range between prefixes, which is 
+
         let owner_addr = deps.api.addr_validate(&owner)?;
         let tokens: Vec<String> = self
             .tokens
             .idx
-            .owner
-            .prefix(owner_addr)
+            .owner // the multi-index
+            .prefix(owner_addr) // the prefix of the multiindex, owner: MultiIndex<'a, --->Addr<---, TokenInfo<T>, String>,
             .keys(deps.storage, start, None, Order::Ascending)
             .take(limit)
             .collect::<StdResult<Vec<_>>>()?;
@@ -348,9 +275,7 @@ where
     }
 }
 
-// This is an extension trait.
-// You can force all its implementors to implement also some external trait,
-// so that two trait bounds essentially collapse into one.
+/// all_tokens_info gets all Tokens + each tokens info owned by an address
 pub trait AllTokensInfoExt<T> {
     fn all_tokens_info(
         &self,
@@ -361,9 +286,6 @@ pub trait AllTokensInfoExt<T> {
     ) -> StdResult<AllTokensInfoResponse<T>>;
 }
 
-// And this is the "blanket" implementation,
-// covering all the types necessary.
-//impl<T> HelperTrait for T where T: Debug 
 impl<'a, T, C, E, Q> AllTokensInfoExt<T> for Cw721Contract<'a, T, C, E, Q> 
 where
     Cw721Contract<'a, T, C, E, Q>: Cw721Query<T>,
@@ -385,6 +307,13 @@ where
 
         let owner_addr = deps.api.addr_validate(&owner_addr)?;
 
+        // start after is converting the string passed to bytes, pinning those bytes, then iterating over every 
+        // primary key after that pinned byte
+
+        // so if owner_addr owns [token_id: 11, token_id: 23, token_id: 27, token_id: 36]
+        // and I pass in "2" as start_after
+        // return is [token_id: 23, token_id 27, token_id: 36]
+
         let owners_tokens: Vec<String> = self
             .tokens
             .idx
@@ -392,11 +321,6 @@ where
             .prefix(owner_addr)
             .keys(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            //.map(|token_id| {
-            //    let info = self.tokens.load(deps.storage, &token_id)?;
-            //    (token_id, info.extension, info.token_uri)
-            //    }
-            //)
             .collect::<StdResult<Vec<_>>>()?;
 
         let owners_tokens_info: Vec<(String, T, Option<String>)> = owners_tokens
@@ -408,8 +332,6 @@ where
                         Ok(x) => {return Ok((token_id.clone(), x.extension, x.token_uri))},
                         Err(e) => {return Err(e)},
                     }
-
-                    //(token_id, info.extension, info.token_uri)
                 }
             )
             .collect::<StdResult<Vec<_>>>()?;

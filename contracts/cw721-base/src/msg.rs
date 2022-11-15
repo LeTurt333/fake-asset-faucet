@@ -148,7 +148,7 @@ pub enum QueryMsg<Q> {
     Extension {
         msg: Q,
     },
-    
+    /// Gets all tokens + token_info owned by an address, returns AllTokensInfoResponse
     AllTokensInfo {
         owner_addr: String,
         start_after: Option<String>,
