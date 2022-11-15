@@ -1,7 +1,9 @@
 /TO-DO.md
 /target
+/contracts/**/target
 /artifacts
 /deployment.md
+/fake_asset_faucet/**/**/target
 
 .DS_Store
 Thumbs.db

@@ -60,48 +60,7 @@ where
             extension: info.extension,
         })
     }
-
-    /*fn all_tokens_info(
-        &self, 
-        deps: Deps, 
-        owner_addr: String, 
-        start_after: Option<String>, 
-        limit: Option<u32>
-    ) -> StdResult<AllTokensInfoResponse<T>> {
-        let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_ALLTOKENINFO_LIMIT) as usize;
-        let start = start_after.map(|s| Bound::ExclusiveRaw(s.into()));
-
-        let owner_addr = deps.api.addr_validate(&owner_addr)?;
-
-        let owners_tokens: Vec<String> = self
-            .tokens
-            .idx
-            .owner
-            .prefix(owner_addr)
-            .keys(deps.storage, start, None, Order::Ascending)
-            .take(limit)
-            .map(|token_id| {
-                let info = self.tokens.load(deps.storage, &token_id)?;
-                (token_id, info.extension, info.token_uri)
-                }
-            )
-            .collect::<StdResult<Vec<_>>>()?;
-
-        let owners_tokens_info: Vec<(String, T, Option<String>)> = owners_tokens
-            .iter()
-            .map(|token_id| {
-                    let info = self.tokens.load(deps.storage, &token_id)?;
-                    (token_id, info.extension, info.token_uri)
-                }
-            )
-            .collect::<StdResult<Vec<_>>>()?;
-
-        Ok(AllTokensInfoResponse {
-            all_tokens_info: owners_tokens_info,
-        })
-
-    }*/
-
+    
     fn owner_of(
         &self,
         deps: Deps,
@@ -214,13 +173,6 @@ where
     ) -> StdResult<TokensResponse> {
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
         let start = start_after.map(|s| Bound::ExclusiveRaw(s.into()));
-
-        // start is token_id, which is being saved as the primary key in the indexed map
-
-        // so right now my primary key is (Addr, listing_id),,
-        // which is what .keys is a range over
-
-        // .prefix_range is setting a range between prefixes, which is 
 
         let owner_addr = deps.api.addr_validate(&owner)?;
         let tokens: Vec<String> = self
