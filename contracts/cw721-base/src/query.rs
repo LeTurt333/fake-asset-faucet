@@ -313,6 +313,10 @@ where
         // so if owner_addr owns [token_id: 11, token_id: 23, token_id: 27, token_id: 36]
         // and I pass in "2" as start_after
         // return is [token_id: 23, token_id 27, token_id: 36]
+        
+        // this is evident as a query with "0" as start_after returns the same response as 
+        // a query with " " as start_after
+        // & " " = 00 byte, "0" = 30 byte
 
         let owners_tokens: Vec<String> = self
             .tokens
