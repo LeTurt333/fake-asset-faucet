@@ -64,13 +64,10 @@ pub fn generate_sk_metadata(
 ) -> ShittyKittyzExtension {
 
     if legend_check_num != 333 {
-        //return None;
-        ////~~~~~~~~~ 
-        // Call function that generates random common SK metadata with traits(i32, i32, i32) & return
+        // Call function that generates random common SK metadata
         return ShittyKittyzExtension::rand_common_sk_metadata(furcolortrait)
     } else {
-        //return None;
-        ////~~~~~~~~~ Return the 1 single Legendary Shitty Kitty Metadata
+        // Return the 1 single Legendary Shitty Kitty Metadata
         return ShittyKittyzExtension::legendary_sk_metadata()
     }
 

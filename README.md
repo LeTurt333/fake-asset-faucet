@@ -11,7 +11,7 @@ A simple 3 contract structure
 - Allows `HitFaucet_` calls from contract admin, or any arbitrary address if they also send in 5junox with execute call
 - junox stored in contract permanently, you'll need to add logic if you want to withdraw it 
 - Caller of `HitFaucet_` is the owner of the newly minted cw20/cw721
+- When minting NFTs, the Hub contract calls the [Nois](https://github.com/noislabs) proxy contract and uses the returned randomness to mint NFTs
 
-### cw721-_
-- Mints an NFT with "random" metadata
-- - Randomness is derived from blockheight for simplicity, do **not** use that in production, check out [Nois](https://github.com/noislabs) or [Drand](https://github.com/drand)
+### cw721-___
+- NFT contracts with metadata extension

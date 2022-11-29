@@ -505,13 +505,6 @@ pub fn execute_hit_faucet_cw20s(
 // id = job number
 // user_address can't be used as a field here as it would exceed
 // the max usize config in Nois Proxy contract
-// #[derive(Serialize, Deserialize)]
-// pub struct JobId {
-//     // use Canonical Address to minimize size & use more descriptive name?
-//     ad: String,
-//     id: u32,
-// }
-
 #[derive(Serialize, Deserialize)]
 pub struct JobId {
     ad: String,
@@ -558,7 +551,6 @@ pub fn execute_hit_faucet_nft(
         id: jobincrement
     };
 
-    //let serialized_job_id = serde_json::to_string(&job_id).map_err(|_| ContractError::SerializeError)?;
     let serialized_job_id = serde_json_wasm::to_string(&job_id).map_err(|_| ContractError::SerializeError)?;
 
     // Check that Nois job_id doesn't exceed max length
@@ -571,10 +563,8 @@ pub fn execute_hit_faucet_nft(
         contract_addr: config.nois_beacon.into(),
         //GetNextRandomness requests the randomness from the proxy
         //The job id is needed to know what randomness we are referring to upon reception in the callback
-        //In this example, the job_id represents one round of dice rolling.
         msg: to_binary(&ProxyExecuteMsg::GetNextRandomness { job_id: serialized_job_id})?,
         // We pay here the contract with the native chain coin.
-        // We need to check first with the nois proxy the denoms and amounts that are required
         funds: vec![nois_fee]
     };
 
@@ -590,17 +580,6 @@ pub fn execute_hit_faucet_nft(
             }
         }
     ).map_err(|_| ContractError::NoJobIncrement)?;
-
-    // JOBINCREMENT.update(
-    //     deps.storage,
-    //     {|old| -> Result<u32, StdError> {
-    //         if old >= u32::MAX - 1 {
-    //             Ok(1)
-    //         } else {
-    //             Ok(old + 1)
-    //         }
-    //     }}
-    // )?;
 
     Ok(Response::new().add_message(execute_nois_msg))
 
@@ -622,14 +601,7 @@ pub fn execute_nois_callback(
     }
 
     // Deserialize job_id into JobId struct
-    // let de_job_id: JobId = serde_json::from_str(&callback.job_id)
-    //     .map_err(|_| ContractError::DeserializeError)?;
-
-    //let de_job_id = serde_json_wasm::de::from_str(&callback.job_id);
-
     let de_job_id: JobId = serde_json_wasm::from_str(&callback.job_id).map_err(|_| ContractError::DeserializeError)?;
-
-    //let de_job_id: JobId = job_id_s.deserialize_into();
 
     // Validate user wallet
     let user_wallet = deps.api.addr_validate(&de_job_id.ad)?;
@@ -1047,19 +1019,6 @@ pub fn get_state(deps: Deps) -> StdResult<Binary> {
 
 #[cfg(test)]
 mod tests {
-
-    //use cosmwasm_std::entry_point;
-    //use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Addr};
-    //use cw2::set_contract_version;
-    //use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-    //use crate::state::{Config, CONFIG};
-    //use crate::error::ContractError;
-    //use crate::msg::AdminResponse;
-    //use crate::state::{Listing};
-    //use cw20::{Balance, Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20ReceiveMsg};
-    //use crate::msg::{CreateListingMsg};
-    //use crate::state::*;
-    //use crate::msg::*;
 
     #[test]
     fn test1() {
