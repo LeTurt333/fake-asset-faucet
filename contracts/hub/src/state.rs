@@ -1,4 +1,3 @@
-//use cosmwasm_std::{Addr, Coin, Timestamp, Binary};
 use cosmwasm_std::{Addr};
 use cw_storage_plus::{
     Item, 
@@ -21,10 +20,13 @@ pub struct Configuration {
     pub cw20_one_faucet_addy: Option<Addr>,
     pub cw20_two_faucet_addy: Option<Addr>,
     pub cw20_tre_faucet_addy: Option<Addr>,
+    pub nois_beacon: Addr,
 }
 
 pub const NPCOUNT: Item<u32> = Item::new("neon_peepz_count");
 pub const SKCOUNT: Item<u32> = Item::new("shitty_kittyz_count");
+
+pub const JOBINCREMENT: Item<u32> = Item::new("job_increment");
 
 
 

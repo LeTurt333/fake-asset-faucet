@@ -30,7 +30,7 @@ schemars.workspace = true
 serde.workspace = true
 cw-storage-plus.workspace = true
 cw2 = "0.15.0"
-cw721 = "0.15.0" 
+cw721 = "0.16.0" 
 cw721-base = { path = "../cw721-base", features = [
   "library",
 ] }

@@ -33,106 +33,72 @@ pub struct Metadata {
 pub type ShittyKittyzExtension = Option<Metadata>;
 
 pub trait RandomSK {
-    fn rand_metadata_extension_skittyz(blockheight: u64) -> ShittyKittyzExtension;
+
+    fn legendary_sk_metadata() -> ShittyKittyzExtension;
+
+    fn rand_common_sk_metadata(fur_color_rand: u32) -> ShittyKittyzExtension;
 }
 
 impl RandomSK for ShittyKittyzExtension {
-    fn rand_metadata_extension_skittyz(blockheight: u64) -> ShittyKittyzExtension {
 
-        // timecrunch just make galactic 1/100
-        let bh = blockheight.to_string();
-        let (_bh_one, bh_two) = bh.split_at(bh.len() - 2);
+    fn legendary_sk_metadata() -> ShittyKittyzExtension {
+        let name = "Interstellar Pooper".to_string();
+        let image_link = "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_galactic.png".to_string();
 
-        let legend_catchnum = bh_two.parse::<u64>();
-        if let Err(_e) = legend_catchnum.clone() {
-            return ShittyKittyzExtension::default();
-        };
-
-        if legend_catchnum.clone().unwrap() == 33 {
-
-            let name = "Interstellar Pooper".to_string();
-            let image_link = "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_galactic.png".to_string();
-
-            let (fur_trait, background_trait, rarity_trait) = (
-                Trait {display_type: None, trait_type: "Fur".to_string(), value: "Galactic".to_string()},
-                Trait {display_type: None, trait_type: "Background".to_string(), value: "Rainbow".to_string()},
-                Trait {display_type: None, trait_type: "Rarity".to_string(), value: "Epic".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("ShittyKittyz Collection".to_string()),
-                attributes: Some(vec![fur_trait, background_trait, rarity_trait]),
-                ..Metadata::default()
-            });
-        };
-
-        let bhtwo = blockheight.to_string();
-        let (_x, numtwo) = bhtwo.split_at(bhtwo.len() - 1);
-
-        let ran = numtwo.parse::<u64>();
-        if let Err(_e) = ran.clone() {
-            return ShittyKittyzExtension::default();
-        };
-        let rand = ran.unwrap();
-
-        // Brown
-        if (rand == 1) || (rand == 5) || (rand == 8) {
-            let name = "Basic Pooper".to_string();
-            let image_link = "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_brown.png".to_string();
-
-            let (fur_trait, background_trait, rarity_trait) = (
-                Trait {display_type: None, trait_type: "Fur".to_string(), value: "Brown".to_string()},
-                Trait {display_type: None, trait_type: "Background".to_string(), value: "Poo-Green".to_string()},
-                Trait {display_type: None, trait_type: "Rarity".to_string(), value: "Common".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("ShittyKittyz Collection".to_string()),
-                attributes: Some(vec![fur_trait, background_trait, rarity_trait]),
-                ..Metadata::default()
-            });
-
-        // Gray
-        } else if (rand == 2) || (rand == 4) || (rand == 9) || (rand == 0) {
-            let name = "Basic Pooper".to_string();
-            let image_link = "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_gray.png".to_string();
-
-            let (fur_trait, background_trait, rarity_trait) = (
-                Trait {display_type: None, trait_type: "Fur".to_string(), value: "Gray".to_string()},
-                Trait {display_type: None, trait_type: "Background".to_string(), value: "Poo-Green".to_string()},
-                Trait {display_type: None, trait_type: "Rarity".to_string(), value: "Common".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("ShittyKittyz Collection".to_string()),
-                attributes: Some(vec![fur_trait, background_trait, rarity_trait]),
-                ..Metadata::default()
-            });
-
-        // Orange
-        } else {
-
-            let name = "Basic Pooper".to_string();
-            let image_link = "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_orange.png".to_string();
-
-            let (fur_trait, background_trait, rarity_trait) = (
-                Trait {display_type: None, trait_type: "Fur".to_string(), value: "Orange".to_string()},
-                Trait {display_type: None, trait_type: "Background".to_string(), value: "Poo-Green".to_string()},
-                Trait {display_type: None, trait_type: "Rarity".to_string(), value: "Common".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("ShittyKittyz Collection".to_string()),
-                attributes: Some(vec![fur_trait, background_trait, rarity_trait]),
-                ..Metadata::default()
-            });
-        };
-
+        let (fur_trait, background_trait, rarity_trait) = (
+            Trait {display_type: None, trait_type: "Fur".to_string(), value: "Galactic".to_string()},
+            Trait {display_type: None, trait_type: "Background".to_string(), value: "Rainbow".to_string()},
+            Trait {display_type: None, trait_type: "Rarity".to_string(), value: "Epic".to_string()}
+        );
+        return Some(Metadata {
+            name: Some(name),
+            image: Some(image_link),
+            description: Some("ShittyKittyz Collection".to_string()),
+            attributes: Some(vec![fur_trait, background_trait, rarity_trait]),
+            ..Metadata::default()
+        });
+        
     }
+
+    fn rand_common_sk_metadata(fur_color_rand: u32) -> ShittyKittyzExtension {
+
+        let (fur_color, image_link) = match fur_color_rand {
+            1 => {
+                (
+                    Trait {display_type: None, trait_type: "Fur".to_string(), value: "Brown".to_string()},
+                    "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_brown.png".to_string()
+                )
+            },
+            2 => {
+                (
+                    Trait {display_type: None, trait_type: "Fur".to_string(), value: "Gray".to_string()},
+                    "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_gray.png".to_string()
+                )
+            },
+            _ => {
+                (
+                    Trait {display_type: None, trait_type: "Fur".to_string(), value: "Orange".to_string()},
+                    "https://bafybeig3irsnosywnthdhgfslvmtum7wwkdcatzojji7pjpnamzjoevff4.ipfs.nftstorage.link/ShittyKittyz/sk_orange.png".to_string()
+                )
+
+            },
+        };
+
+        let (background_trait, rarity_trait) = (
+            Trait {display_type: None, trait_type: "Background".to_string(), value: "Poo-Green".to_string()},
+            Trait {display_type: None, trait_type: "Rarity".to_string(), value: "Common".to_string()}
+        );
+
+        return Some(Metadata {
+            name: Some("Basic Pooper".to_string()),
+            image: Some(image_link),
+            description: Some("ShittyKittyz Collection".to_string()),
+            attributes: Some(vec![fur_color, background_trait, rarity_trait]),
+            ..Metadata::default()
+        });
+        
+    }
+
 }
 
 pub type Cw721MetadataContract<'a> = cw721_base::Cw721Contract<'a, ShittyKittyzExtension, Empty, Empty, Empty>;

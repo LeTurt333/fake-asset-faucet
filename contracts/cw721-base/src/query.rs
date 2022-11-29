@@ -2,10 +2,10 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use cosmwasm_schema::cw_serde;
 
-use cosmwasm_std::{to_binary, Addr, Binary, BlockInfo, Deps, Env, Order, StdError, StdResult};
+use cosmwasm_std::{to_binary, Addr, Binary, BlockInfo, Deps, Env, Order, StdError, StdResult, CustomMsg};
 
 use cw721::{
-    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, CustomMsg,
+    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse,
     Cw721Query, 
     Expiration, NftInfoResponse, NumTokensResponse, OperatorsResponse, OwnerOfResponse,
     TokensResponse,
@@ -19,23 +19,6 @@ use crate::state::{Approval, Cw721Contract, TokenInfo};
 const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 100;
 const MAX_ALLTOKENINFO_LIMIT: u32 = 30;
-
-
-#[cw_serde]
-pub struct AllTokensInfoResponse<T> {
-    /// Universal resource identifier for this NFT
-    /// Should point to a JSON file that conforms to the ERC721
-    /// Metadata JSON Schema
-    // ~~~~~~~~ pub token_uri: Option<String>,
-    /// You can add any custom metadata here when you extend cw721-base
-    // ~~~~~~~~ pub extension: T,
-    // ~~~~~~~~ pub token_id: String,
-    // vec of tokens owned by address
-    // String = token_id
-    // T = Any custom metadata
-    // Option<String> = token_uri
-    pub all_tokens_info: Vec<(String, T, Option<String>)>,
-}
 
 impl<'a, T, C, E, Q> Cw721Query<T> for Cw721Contract<'a, T, C, E, Q>
 where
@@ -227,7 +210,18 @@ where
     }
 }
 
-/// all_tokens_info gets all Tokens + each tokens info owned by an address
+
+
+#[cw_serde]
+pub struct AllTokensInfoResponse<T> {
+    // Returned from QueryMsg::AllTokensInfo
+    // vec of tokens owned by address
+    pub all_tokens_info: Vec<(String, T, Option<String>)>,
+    // String = token_id
+    // T = Any custom metadata
+    // Option<String> = token_uri
+}
+
 pub trait AllTokensInfoExt<T> {
     fn all_tokens_info(
         &self,

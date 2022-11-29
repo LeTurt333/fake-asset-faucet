@@ -33,135 +33,130 @@ pub struct Metadata {
 pub type NeonPeepzExtension = Option<Metadata>;
 
 pub trait RandomNP {
-    fn rand_metadata_extension_neonpeepz(blockheight: u64) -> NeonPeepzExtension;
+    fn bot_legend() -> NeonPeepzExtension;
+
+    fn fairy_legend() -> NeonPeepzExtension;
+
+    fn denom_legend() -> NeonPeepzExtension;
+
+    fn rand_peep(trait1: u32, trait2: u32) -> NeonPeepzExtension;
 }
 
 impl RandomNP for NeonPeepzExtension {
-    fn rand_metadata_extension_neonpeepz(blockheight: u64) -> NeonPeepzExtension {
 
-        let bh = blockheight.to_string();
-
-        // split into strone, strtwo, strtwo is the last 2 digits
-        let (_bh_one, bh_two) = bh.split_at(bh.len() - 2);
-        // parse strtwo into a u64
-        let legend_catchnum = bh_two.parse::<u64>();
-        if let Err(_e) = legend_catchnum.clone() {
-            return NeonPeepzExtension::default();
-        };
-        // if strtwo is 33, make metadata for legendary_bot and return
-        if legend_catchnum.clone().unwrap() == 33 {
-            let name = "Legendary Bot".to_string();
-            let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/legendary_bot.png".to_string();
-            let (arch_trait, class_trait, weapon_trait) = (
-                Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Deity".to_string()},
-                Trait {display_type: None, trait_type: "Class".to_string(), value: "Robotic".to_string()},
-                Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Laser Face".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("NeoNPeePz Collection".to_string()),
-                attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
-                ..Metadata::default()
-            });
-        };
-        // if strtwo is 66, make metadata for legendary_fairy and return
-        if legend_catchnum.clone().unwrap() == 66 {
-            let name = "Legendary Fairy".to_string();
-            let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/legendary_fairy.png".to_string();
-            let (arch_trait, class_trait, weapon_trait) = (
-                Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Deity".to_string()},
-                Trait {display_type: None, trait_type: "Class".to_string(), value: "Celestial".to_string()},
-                Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Arcane Bolt".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("NeoNPeePz Collection".to_string()),
-                attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
-                ..Metadata::default()
-            });
-
-        };
-        // if strtwo is 99, make metadata for legendary_demon and return
-        if legend_catchnum.clone().unwrap() == 99 {
-            let name = "Legendary Demon".to_string();
-            let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/legendary_demon.png".to_string();
-            let (arch_trait, class_trait, weapon_trait) = (
-                Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Deity".to_string()},
-                Trait {display_type: None, trait_type: "Class".to_string(), value: "Cursed".to_string()},
-                Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Drain Life".to_string()}
-            );
-            return Some(Metadata {
-                name: Some(name),
-                image: Some(image_link),
-                description: Some("NeoNPeePz Collection".to_string()),
-                attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
-                ..Metadata::default()
-            });
-        };
-
-        // else
-        // use existing logic to generate 1 of the 4 common types
-        let numstr = blockheight.to_string();
-        let (strone, strtwo) = numstr.split_at(numstr.len() - 1);
-        let ranone = strone.parse::<u64>();
-        let rantwo = strtwo.parse::<u64>();
-        if let Err(_err) = ranone.clone() {
-            return NeonPeepzExtension::default();
-        };
-        if let Err(_err) = rantwo.clone() {
-            return NeonPeepzExtension::default();
-        };
-        let ranclass = if ranone.clone().unwrap() % 2 == 0 {
-            "Mage"
-        } else {
-            "Warrior"
-        };
-        let ranarchetype = if rantwo.clone().unwrap() % 2 == 0 {
-            "Hero"
-        } else {
-            "Villain"
-        };
-
-        let name = format!("{}-{}", ranarchetype, ranclass);
-
-        let (image_link, arch_trait, class_trait, weapon_trait) = if ranone.clone().unwrap() % 2 == 0 && rantwo.clone().unwrap() % 2 == 0 {
-            //hero mage
-            ("https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/hero_mage.png".to_string(),
-            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Hero".to_string()},
-            Trait {display_type: None, trait_type: "Class".to_string(), value: "Mage".to_string()},
-            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Cracked Staff".to_string()})
-        } else if ranone.clone().unwrap() % 2 == 0 && rantwo.clone().unwrap() % 2 != 0 {
-            //villian mage
-            ("https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/villian_mage.png".to_string(),
-            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Villain".to_string()},
-            Trait {display_type: None, trait_type: "Class".to_string(), value: "Mage".to_string()},
-            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Cracked Staff".to_string()})
-        } else if ranone.clone().unwrap() % 2 != 0 && rantwo.clone().unwrap() % 2 == 0 {
-            //hero warrior
-            ("https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/hero_warrior.png".to_string(),
-            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Hero".to_string()},
-            Trait {display_type: None, trait_type: "Class".to_string(), value: "Warrior".to_string()},
-            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Dull Blade".to_string()})
-        } else {
-            //villian warrior
-            ("https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/villian_warrior.png".to_string(),
-            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Villain".to_string()},
-            Trait {display_type: None, trait_type: "Class".to_string(), value: "Warrior".to_string()},
-            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Dull Blade".to_string()})
-        };
-
-        Some(Metadata {
+    fn bot_legend() -> NeonPeepzExtension {
+        let name = "Legendary Bot".to_string();
+        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/legendary_bot.png".to_string();
+        let (arch_trait, class_trait, weapon_trait) = (
+            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Deity".to_string()},
+            Trait {display_type: None, trait_type: "Class".to_string(), value: "Robotic".to_string()},
+            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Laser Face".to_string()}
+        );
+        return Some(Metadata {
             name: Some(name),
             image: Some(image_link),
             description: Some("NeoNPeePz Collection".to_string()),
             attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
             ..Metadata::default()
-        })
-
-
+        });
     }
+
+    fn fairy_legend() -> NeonPeepzExtension {
+        let name = "Legendary Fairy".to_string();
+        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/legendary_fairy.png".to_string();
+        let (arch_trait, class_trait, weapon_trait) = (
+            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Deity".to_string()},
+            Trait {display_type: None, trait_type: "Class".to_string(), value: "Celestial".to_string()},
+            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Arcane Bolt".to_string()}
+        );
+        return Some(Metadata {
+            name: Some(name),
+            image: Some(image_link),
+            description: Some("NeoNPeePz Collection".to_string()),
+            attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
+            ..Metadata::default()
+        });
+        
+    }
+
+    fn denom_legend() -> NeonPeepzExtension {
+        let name = "Legendary Demon".to_string();
+        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/legendary_demon.png".to_string();
+        let (arch_trait, class_trait, weapon_trait) = (
+            Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Deity".to_string()},
+            Trait {display_type: None, trait_type: "Class".to_string(), value: "Cursed".to_string()},
+            Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Drain Life".to_string()}
+        );
+        return Some(Metadata {
+            name: Some(name),
+            image: Some(image_link),
+            description: Some("NeoNPeePz Collection".to_string()),
+            attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
+            ..Metadata::default()
+        });
+    }
+
+
+    fn rand_peep(trait1: u32, trait2: u32) -> NeonPeepzExtension {
+
+        let (name, image_link, arch_trait, class_trait, weapon_trait) = match trait1 {
+
+            1 => { // "Mage"
+                match trait2 {
+                    1 => { // "Hero" - Hero Mage
+                        let name = "Hero-Mage".to_string();
+                        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/hero_mage.png".to_string();
+                        let arch_trait = Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Hero".to_string()};
+                        let class_trait = Trait {display_type: None, trait_type: "Class".to_string(), value: "Mage".to_string()};
+                        let weapon_trait = Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Cracked Staff".to_string()};
+                        (name, image_link, arch_trait, class_trait, weapon_trait)
+                    },
+
+                    _ => { // "Villain" - Villain Mage
+                        let name = "Villain-Mage".to_string();
+                        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/villian_mage.png".to_string();
+                        let arch_trait = Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Villain".to_string()};
+                        let class_trait = Trait {display_type: None, trait_type: "Class".to_string(), value: "Mage".to_string()};
+                        let weapon_trait = Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Cracked Staff".to_string()};
+                        (name, image_link, arch_trait, class_trait, weapon_trait)
+                    }
+                }
+            },
+
+            _ => { // "Warrior"
+                match trait2 {
+
+                    1 => { // "Hero" - Hero Warrior
+                        let name = "Hero-Warrior".to_string();
+                        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/hero_warrior.png".to_string();
+                        let arch_trait = Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Hero".to_string()};
+                        let class_trait = Trait {display_type: None, trait_type: "Class".to_string(), value: "Warrior".to_string()};
+                        let weapon_trait = Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Dull Blade".to_string()};
+                        (name, image_link, arch_trait, class_trait, weapon_trait)
+                    },
+
+                    _ => { // "Villain" - Villain Warrior
+                        let name = "Villain-Warrior".to_string();
+                        let image_link = "https://bafybeihpieunve4hqyohwcqx7l3sxrm6b6b2m2rzn4r2h62fxrecek64pi.ipfs.nftstorage.link/NeoNPeePz/villian_warrior.png".to_string();
+                        let arch_trait = Trait {display_type: None, trait_type: "Archetype".to_string(), value: "Villain".to_string()};
+                        let class_trait = Trait {display_type: None, trait_type: "Class".to_string(), value: "Warrior".to_string()};
+                        let weapon_trait = Trait {display_type: None, trait_type: "Weapon".to_string(), value: "Dull Blade".to_string()};
+                        (name, image_link, arch_trait, class_trait, weapon_trait)
+                    }
+                }
+            }
+        };
+
+        Some(Metadata {
+            name: Some(name),
+            image: Some(image_link),
+            description: Some("NeoNPeepz Collection".to_string()),
+            attributes: Some(vec![arch_trait, class_trait, weapon_trait]),
+            ..Metadata::default()
+        })
+        
+    }
+
 }
 
 pub type Cw721MetadataContract<'a> = cw721_base::Cw721Contract<'a, NeonPeepzExtension, Empty, Empty, Empty>;

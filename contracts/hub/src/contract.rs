@@ -2,12 +2,12 @@
 // The Essentials
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, from_binary, Deps, DepsMut, Env, 
+    to_binary, from_binary, Deps, DepsMut, Env,
     MessageInfo, Response, Addr, Uint128,
     CosmosMsg, WasmMsg, Empty,
     SubMsg, ReplyOn, SubMsgResult,  Reply, 
-    coin, has_coins, Binary, StdResult
-}; // Attribute
+    coin, has_coins, Binary, StdResult, Coin,
+}; // Attribute, QueryRequest, WasmQuery
 
 use cw_utils::{
     ParseReplyError, parse_reply_instantiate_data, parse_reply_execute_data,
@@ -16,19 +16,11 @@ use cw_utils::{
 use cw2::set_contract_version;
 
 use cw721_neon_peepz::{
-    ExecuteMsg as Cw721NeonPeepzExecuteMsg,
     InstantiateMsg as Cw721NeonPeepzInstantiateMsg,
-    MintMsg as NeonPeepzMintMsg,
-    NeonPeepzExtension,
-    RandomNP,
 };
 
 use cw721_shitty_kittyz::{
-    ExecuteMsg as Cw721ShittyKittyzExecuteMsg,
     InstantiateMsg as Cw721ShittyKittyzInstantiateMsg,
-    MintMsg as ShittyKittyzMintMsg,
-    ShittyKittyzExtension,
-    RandomSK,
 };
 
 use cw20_base::msg::{
@@ -39,10 +31,23 @@ use cw20_base::msg::{
 //use cw20::Cw20QueryMsg::Minter;
 use cw20::MinterResponse;
 
+// Nois
+use nois::{ 
+    NoisCallback, ProxyExecuteMsg, MAX_JOB_ID_LEN, sub_randomness_with_key, 
+};
+//use serde::{Serialize, Deserialize};
+
+use serde::Deserialize;
+use serde::Serialize;
+use serde_json_wasm::*;
+use serde_cw_value::*;
+use serde::de::DeserializeOwned;
+
 // The Commons
 use crate::msg::*;
 use crate::state::*;
 use crate::error::*;
+use crate::utils::*;
 use std::str;
 
 // Contract name used for migration
@@ -70,6 +75,12 @@ pub fn instantiate(
     let admin = msg.admin.unwrap_or_else(|| info.sender.to_string());
 
     let validated = deps.api.addr_validate(&admin)?;
+
+    //juno1tquqqdvlv3fwu5u6evpt7e4ss47zczug8tq4czjucgx8dulkhjxsegfuds
+    let nois_proxy_addr = deps
+        .api
+        .addr_validate(&msg.nois_proxy)
+        .map_err(|_| ContractError::InvalidProxyAddress)?;
         
     CONFIGURATION.save(deps.storage, &Configuration{
         admin: validated,
@@ -78,10 +89,13 @@ pub fn instantiate(
         cw20_one_faucet_addy: None,
         cw20_two_faucet_addy: None,
         cw20_tre_faucet_addy: None,
+        nois_beacon: nois_proxy_addr,
     })?;
 
     NPCOUNT.save(deps.storage, &1)?;
     SKCOUNT.save(deps.storage, &1)?;
+
+    JOBINCREMENT.save(deps.storage, &1)?;
 
     Ok(Response::new()
         .add_attribute("method", "instantiate")
@@ -102,16 +116,20 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        // ~~~~~~~~~~~~~~~~ Callable by admin
+        
         ExecuteMsg::UpdateAdmin {new_admin} => execute_update_admin(deps, &info.sender, new_admin),
         ExecuteMsg::InitFaucetNeonPeepz{code_id} => execute_add_faucet_neon_peepz(deps, env, &info.sender, code_id),
         ExecuteMsg::InitFaucetShittyKittyz{code_id} => execute_add_faucet_shitty_kittyz(deps, env, &info.sender, code_id),
         ExecuteMsg::InitFaucetCw20One{code_id} => execute_add_faucet_cw20(deps, env, &info.sender, code_id),
         ExecuteMsg::InitFaucetCw20Two{code_id} => execute_add_faucet_cw20_two(deps, env, &info.sender, code_id),
         ExecuteMsg::InitFaucetCw20Tre{code_id} => execute_add_faucet_cw20_tre(deps, env, &info.sender, code_id),
-        // ~~~~~~~~~~~~~~~~ Callable by anyone
-        ExecuteMsg::HitFaucetNft{} => execute_hit_faucet_nft(deps.as_ref(), info, env),
+
+        
+        ExecuteMsg::HitFaucetNft{} => execute_hit_faucet_nft(deps, info, env),
         ExecuteMsg::HitFaucetCw20s{} => execute_hit_faucet_cw20s(deps.as_ref(), info, env),
+
+        // Nois Callback
+        ExecuteMsg::Receive { callback } => execute_nois_callback(deps, env, info, callback),
     }
 }
 
@@ -233,7 +251,7 @@ pub fn execute_add_faucet_shitty_kittyz(
     )
 }
 
-// Instantiates the cw20 contract with $CSONE, stores cw20_one_faucet_addy on reply
+// Instantiates the cw20 contract with $JVONE, stores cw20_one_faucet_addy on reply
 pub fn execute_add_faucet_cw20(
     deps: DepsMut,
     env: Env,
@@ -253,8 +271,8 @@ pub fn execute_add_faucet_cw20(
     };
 
     let cw20initmsg = Cw20InitMsg {
-        name: "CS-One".to_string(),
-        symbol: "CSONE".to_string(),
+        name: "JV-One".to_string(),
+        symbol: "JVONE".to_string(),
         decimals: 6,
         initial_balances: vec![],
         mint: Some(minter),
@@ -268,7 +286,7 @@ pub fn execute_add_faucet_cw20(
         code_id: code_id,
         msg: bin_cw20_init_msg,
         funds: vec![],
-        label: "CS-One cw20 contract".to_string(),
+        label: "JV-One cw20 contract".to_string(),
     });
 
     let sub_msg = SubMsg {
@@ -279,12 +297,12 @@ pub fn execute_add_faucet_cw20(
     };
 
     Ok(Response::new()
-        .add_attribute("Instantiate CS-One from Hub", "innit")
+        .add_attribute("Instantiate JV-One from Hub", "innit")
         .add_submessage(sub_msg)
     )
 }
 
-// Instantiates the cw20 contract with $CSTWO, stores cw20_two_faucet_addy on reply
+// Instantiates the cw20 contract with $JVTWO, stores cw20_two_faucet_addy on reply
 pub fn execute_add_faucet_cw20_two(
     deps: DepsMut,
     env: Env,
@@ -304,8 +322,8 @@ pub fn execute_add_faucet_cw20_two(
     };
 
     let cw20initmsg = Cw20InitMsg {
-        name: "CS-Two".to_string(),
-        symbol: "CSTWO".to_string(),
+        name: "JV-Two".to_string(),
+        symbol: "JVTWO".to_string(),
         decimals: 6,
         initial_balances: vec![],
         mint: Some(minter),
@@ -319,7 +337,7 @@ pub fn execute_add_faucet_cw20_two(
         code_id: code_id,
         msg: bin_cw20_init_msg,
         funds: vec![],
-        label: "CS-Two cw20 contract".to_string(),
+        label: "JV-Two cw20 contract".to_string(),
     });
 
     let sub_msg = SubMsg {
@@ -330,12 +348,12 @@ pub fn execute_add_faucet_cw20_two(
     };
 
     Ok(Response::new()
-        .add_attribute("Instantiate CS-Two from Hub", "innit")
+        .add_attribute("Instantiate JV-Two from Hub", "innit")
         .add_submessage(sub_msg)
     )
 }
 
-// Instantiates the cw20 contract with $CSTRE, stores cw20_two_faucet_addy on reply
+// Instantiates the cw20 contract with $JVTRE, stores cw20_two_faucet_addy on reply
 pub fn execute_add_faucet_cw20_tre(
     deps: DepsMut,
     env: Env,
@@ -355,8 +373,8 @@ pub fn execute_add_faucet_cw20_tre(
     };
 
     let cw20initmsg = Cw20InitMsg {
-        name: "CS-Tre".to_string(),
-        symbol: "CSTRE".to_string(),
+        name: "JV-Tre".to_string(),
+        symbol: "JVTRE".to_string(),
         decimals: 6,
         initial_balances: vec![],
         mint: Some(minter),
@@ -370,7 +388,7 @@ pub fn execute_add_faucet_cw20_tre(
         code_id: code_id,
         msg: bin_cw20_init_msg,
         funds: vec![],
-        label: "CS-Tre cw20 contract".to_string(),
+        label: "JV-Tre cw20 contract".to_string(),
     });
 
     let sub_msg = SubMsg {
@@ -381,102 +399,43 @@ pub fn execute_add_faucet_cw20_tre(
     };
 
     Ok(Response::new()
-        .add_attribute("Instantiate CS-Tre from Hub", "innit")
+        .add_attribute("Instantiate JV-Tre from Hub", "innit")
         .add_submessage(sub_msg)
     )
 }
 
+pub fn execute_update_nois(
+    deps: DepsMut,
+    sender: Addr,
+    new_addr: String,
+) -> Result<Response, ContractError> {
+
+    let config: Configuration = CONFIGURATION.load(deps.storage)?;
+
+    if config.admin != sender {
+        return Err(ContractError::Unauthorized{});
+    }
+
+    let validated_nois: Addr = deps.api.addr_validate(&new_addr)?;
+
+    CONFIGURATION.update(
+        deps.storage,
+        |old| -> Result<Configuration, ContractError> {
+            return Ok(Configuration {nois_beacon: validated_nois,
+                ..old
+            }
+        );}
+    )?;
+
+
+    Ok(Response::new().add_attribute("update_nois", format!("new_addr: {}", new_addr)))
+
+
+}
 
 ////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //// Callable by anyone
 ////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-pub fn execute_hit_faucet_nft(
-    deps: Deps,
-    info: MessageInfo,
-    env: Env,
-) -> Result<Response, ContractError> {
-
-    // pull faucet address from config
-    let config = CONFIGURATION.load(deps.storage)?;
-    let np_faucet_addr = config.neon_peepz_addy.ok_or(ContractError::NoFaucetAddy{})?;
-    let sk_faucet_addr = config.shitty_kittyz_addy.ok_or(ContractError::NoFaucetAddy{})?;
-
-    // check that message contains enough ujunox or is admin
-    let cost_juno = coin(5000000, "ujunox");
-    if !has_coins(&info.funds, &cost_juno) && info.sender != config.admin {
-        return Err(ContractError::Unauthorized{});
-    }
-
-    // pull token count from state within this contract,
-    // rather than on the cw721 contract directly,
-    // to use as the token_id
-    let np_count = NPCOUNT.load(deps.storage)?;
-    let sk_count = SKCOUNT.load(deps.storage)?;
-
-    // create "random" metadata with blockheight
-    // Note - this can be gamed, not a real solution like drand or Nois
-    let np_rand_metadata = NeonPeepzExtension::rand_metadata_extension_neonpeepz(env.block.height);
-    let sk_rand_metadata = ShittyKittyzExtension::rand_metadata_extension_skittyz(env.block.height);
-
-    // create execute message to send to faucet address
-    let np_mint_msg: NeonPeepzMintMsg<NeonPeepzExtension> = NeonPeepzMintMsg{
-        count: np_count,
-        token_id: np_count.to_string(),
-        owner: info.sender.to_string(),
-        token_uri: None,
-        extension: np_rand_metadata,
-    };
-
-    let sk_mint_msg: ShittyKittyzMintMsg<ShittyKittyzExtension> = ShittyKittyzMintMsg{
-        count: sk_count,
-        token_id: sk_count.to_string(),
-        owner: info.sender.to_string(),
-        token_uri: None,
-        extension: sk_rand_metadata,
-    };
-
-    let np_exec_mint = Cw721NeonPeepzExecuteMsg::Mint(np_mint_msg);
-    let sk_exec_mint = Cw721ShittyKittyzExecuteMsg::Mint(sk_mint_msg);
-
-    let np_bin_exec_mint = to_binary(&np_exec_mint)?;
-    let sk_bin_exec_mint = to_binary(&sk_exec_mint)?;
-
-    let np_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
-        contract_addr: np_faucet_addr.to_string(),
-        funds: vec![],
-        msg: np_bin_exec_mint,
-    });
-
-    let sk_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
-        contract_addr: sk_faucet_addr.to_string(),
-        funds: vec![],
-        msg: sk_bin_exec_mint,
-    });
-
-    let np_sub_msg = SubMsg {
-        id: 3,
-        msg: np_cosmos_msg,
-        gas_limit: None,
-        reply_on: ReplyOn::Success,
-    };
-
-    let sk_sub_msg = SubMsg {
-        id: 4,
-        msg: sk_cosmos_msg,
-        gas_limit: None,
-        reply_on: ReplyOn::Success,
-    };
-    
-    //let bin_prev_count = to_binary(&count)?;
-
-    Ok(Response::new()
-        .add_attribute("Mint two NFTs from hub", "minnit")
-        .add_submessage(np_sub_msg)
-        .add_submessage(sk_sub_msg)
-    )
-}
-
 pub fn execute_hit_faucet_cw20s(
     deps: Deps,
     info: MessageInfo,
@@ -485,9 +444,9 @@ pub fn execute_hit_faucet_cw20s(
 
     // pull faucet address' from config
     let config = CONFIGURATION.load(deps.storage)?;
-    let cs_one_faucet = config.cw20_one_faucet_addy.ok_or(ContractError::NoFaucetAddy{})?;
-    let cs_two_faucet = config.cw20_two_faucet_addy.ok_or(ContractError::NoFaucetAddy{})?;
-    let cs_tre_faucet = config.cw20_tre_faucet_addy.ok_or(ContractError::NoFaucetAddy{})?;
+    let jv_one_faucet = config.cw20_one_faucet_addy.ok_or(ContractError::NoFaucetAddy{})?;
+    let jv_two_faucet = config.cw20_two_faucet_addy.ok_or(ContractError::NoFaucetAddy{})?;
+    let jv_tre_faucet = config.cw20_tre_faucet_addy.ok_or(ContractError::NoFaucetAddy{})?;
 
     // check that message contains enough ujunox or is admin
     let cost_juno = coin(5000000, "ujunox");
@@ -496,50 +455,225 @@ pub fn execute_hit_faucet_cw20s(
     }
 
     // Create mint msgs to sent to cw20 faucet addresses
-    let csone_mintmsg = Cw20ExecuteMsg::Mint {
+    let jvone_mintmsg = Cw20ExecuteMsg::Mint {
         amount: Uint128::from(69000000u128),
         recipient: info.sender.to_string(),
     };
-    let cstwo_mintmsg = Cw20ExecuteMsg::Mint {
+    let jvtwo_mintmsg = Cw20ExecuteMsg::Mint {
         amount: Uint128::from(69000000u128),
         recipient: info.sender.to_string(),
     };
-    let cstre_mintmsg = Cw20ExecuteMsg::Mint {
+    let jvtre_mintmsg = Cw20ExecuteMsg::Mint {
         amount: Uint128::from(69000000u128),
         recipient: info.sender.to_string(),
     };
 
-    let bin_csone = to_binary(&csone_mintmsg)?;
-    let bin_cstwo = to_binary(&cstwo_mintmsg)?;
-    let bin_cstre = to_binary(&cstre_mintmsg)?;
+    let bin_jvone = to_binary(&jvone_mintmsg)?;
+    let bin_jvtwo = to_binary(&jvtwo_mintmsg)?;
+    let bin_jvtre = to_binary(&jvtre_mintmsg)?;
 
-    let csone_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
-        contract_addr: cs_one_faucet.to_string(),
+    let jvone_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
+        contract_addr: jv_one_faucet.to_string(),
         funds: vec![],
-        msg: bin_csone,
+        msg: bin_jvone,
     });
-    let cstwo_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
-        contract_addr: cs_two_faucet.to_string(),
+    let jvtwo_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
+        contract_addr: jv_two_faucet.to_string(),
         funds: vec![],
-        msg: bin_cstwo,
+        msg: bin_jvtwo,
     });
-    let cstre_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
-        contract_addr: cs_tre_faucet.to_string(),
+    let jvtre_cosmos_msg: CosmosMsg<Empty> = CosmosMsg::from(WasmMsg::Execute {
+        contract_addr: jv_tre_faucet.to_string(),
         funds: vec![],
-        msg: bin_cstre,
+        msg: bin_jvtre,
     });
 
     Ok(Response::new()
-        .add_attribute("Hit cs20 faucets", "CSONE CSTWO CSTRE")
-        .add_message(csone_cosmos_msg)
-        .add_message(cstwo_cosmos_msg)
-        .add_message(cstre_cosmos_msg)
+        .add_attribute("Hit jv20 faucets", "JVONE JVTWO JVTRE")
+        .add_message(jvone_cosmos_msg)
+        .add_message(jvtwo_cosmos_msg)
+        .add_message(jvtre_cosmos_msg)
     )
 }
 
 //////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-////////////// Reply
+////////////// Nois callback
+///////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// ad = user adderss,
+// id = job number
+// user_address can't be used as a field here as it would exceed
+// the max usize config in Nois Proxy contract
+// #[derive(Serialize, Deserialize)]
+// pub struct JobId {
+//     // use Canonical Address to minimize size & use more descriptive name?
+//     ad: String,
+//     id: u32,
+// }
+
+#[derive(Serialize, Deserialize)]
+pub struct JobId {
+    ad: String,
+    id: u32
+}
+
+pub fn execute_hit_faucet_nft(
+    deps: DepsMut,
+    info: MessageInfo,
+    env: Env,
+    //job_id: String
+) -> Result<Response, ContractError> {
+
+    // Pull config
+    let config: Configuration = CONFIGURATION.load(deps.storage)?;
+
+    // check that message contains enough ujunox or is admin
+    let cost_juno = coin(5000000, "ujunox");
+    if !has_coins(&info.funds, &cost_juno) && info.sender != config.admin {
+        return Err(ContractError::Unauthorized{});
+    }
+
+    // Get the Nois Proxy contract fee price
+    // let resp: ? = deps
+    //     .querier
+    //     .query_wasm_smart(
+    //         config.nois_beacon, 
+    //         &"{prices: {denom: ujunox}}".to_string()
+    //     )?;
+
+    // As this call is isolated (does not involve submsgs),
+    // State is only reverted if this call or the Nois Proxy call fails -
+    // If there is an error in handling the Callback from the Nois Proxy, it will not revert
+    // this fee payment nor the payment the user made (5 junox) 
+    let nois_fee: Coin = coin(150, "ujunox");
+
+    // Pull count for job_id 
+    let jobincrement = JOBINCREMENT.load(deps.storage)?;
+
+    // Create serializable struct that contains sender address & job_id,
+    // since we will need both in the Nois callback execution
+    let job_id: JobId = JobId {
+        ad: info.sender.to_string(),
+        id: jobincrement
+    };
+
+    //let serialized_job_id = serde_json::to_string(&job_id).map_err(|_| ContractError::SerializeError)?;
+    let serialized_job_id = serde_json_wasm::to_string(&job_id).map_err(|_| ContractError::SerializeError)?;
+
+    // Check that Nois job_id doesn't exceed max length
+    // manually prechecked but doesn't hurt
+    if serialized_job_id.len() > MAX_JOB_ID_LEN {
+        return Err(ContractError::JobIdTooLong);
+    }
+
+    let execute_nois_msg = WasmMsg::Execute {
+        contract_addr: config.nois_beacon.into(),
+        //GetNextRandomness requests the randomness from the proxy
+        //The job id is needed to know what randomness we are referring to upon reception in the callback
+        //In this example, the job_id represents one round of dice rolling.
+        msg: to_binary(&ProxyExecuteMsg::GetNextRandomness { job_id: serialized_job_id})?,
+        // We pay here the contract with the native chain coin.
+        // We need to check first with the nois proxy the denoms and amounts that are required
+        funds: vec![nois_fee]
+    };
+
+    // JOBINCREMENT must be updated here since execute_nois_msg is not a submsg
+    // & more importantly each key in sub_randomness needs to be different
+    JOBINCREMENT.update(
+        deps.storage,
+        |old| -> Result<u32, ContractError> {
+            if old >= u32::MAX - 1 {
+                Ok(1)
+            } else {
+                Ok(old + 1)
+            }
+        }
+    ).map_err(|_| ContractError::NoJobIncrement)?;
+
+    // JOBINCREMENT.update(
+    //     deps.storage,
+    //     {|old| -> Result<u32, StdError> {
+    //         if old >= u32::MAX - 1 {
+    //             Ok(1)
+    //         } else {
+    //             Ok(old + 1)
+    //         }
+    //     }}
+    // )?;
+
+    Ok(Response::new().add_message(execute_nois_msg))
+
+}
+
+pub fn execute_nois_callback(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    callback: NoisCallback
+) -> Result<Response, ContractError> {
+
+    // Pull config
+    let config: Configuration = CONFIGURATION.load(deps.storage)?;
+
+    // Verify nois contract is caller
+    if info.sender != config.nois_beacon {
+        return Err(ContractError::Unauthorized {  });
+    }
+
+    // Deserialize job_id into JobId struct
+    // let de_job_id: JobId = serde_json::from_str(&callback.job_id)
+    //     .map_err(|_| ContractError::DeserializeError)?;
+
+    //let de_job_id = serde_json_wasm::de::from_str(&callback.job_id);
+
+    let de_job_id: JobId = serde_json_wasm::from_str(&callback.job_id).map_err(|_| ContractError::DeserializeError)?;
+
+    //let de_job_id: JobId = job_id_s.deserialize_into();
+
+    // Validate user wallet
+    let user_wallet = deps.api.addr_validate(&de_job_id.ad)?;
+
+    // Get base randomness from NoisCallback
+    let base_rand: [u8; 32] = callback
+        .randomness
+        .to_array()
+        .map_err(|_| ContractError::InvalidRandomness)?;
+
+    // Create subrandomness provider
+    let mut provider = sub_randomness_with_key(base_rand, de_job_id.id.to_string());
+    // need to deref out of Box here?
+    let randomness = provider.provide();        
+
+    // pull token counts from state to use as the token_id
+    let np_count = NPCOUNT.load(deps.storage)?;
+    let sk_count = SKCOUNT.load(deps.storage)?;
+
+    // get faucet addresses
+    let np_faucet_addr = config.neon_peepz_addy.ok_or(ContractError::NoFaucetAddy{})?;
+    let sk_faucet_addr = config.shitty_kittyz_addy.ok_or(ContractError::NoFaucetAddy{})?;
+
+    // Make mint submsgs
+    let mint_submsgs: Vec<SubMsg> = make_mint_submsgs(
+        np_faucet_addr,
+        np_count,
+        sk_faucet_addr,
+        sk_count,
+        user_wallet,
+        randomness
+    )?;
+
+    // Increment np_count & sk_count on submsg replies
+    Ok(Response::new()
+        .add_attribute("Mint two NFTs from hub", "minnit")
+        .add_submessages(mint_submsgs)
+    )
+}
+
+
+//////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+////////////// Submessage Reply
 ///////////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #[entry_point]
@@ -656,16 +790,6 @@ pub fn reply(
                 }
             )?;
 
-            // NOTE - Events no longer returned because undeterminst from Authz
-            // Now grab attributes from SubMsg response to return them
-            //let events = msg.result.unwrap().events;
-            //let vec_attributes = events
-            //    .iter()
-            //    .map(|event| event.attributes.clone())
-            //    .flatten()
-            //    .collect::<Vec<Attribute>>();
-
-
             if let Some(_bin) = res.data.clone() {
                 let x = res.data.unwrap();
                 let token_id = from_binary::<u32>(&x)?;
@@ -679,7 +803,6 @@ pub fn reply(
                     .add_attribute("No Token ID Found: ", "Query the Base cw721 contract directly")
                 );
             }
-
         },
 
         // Reply from SK MintMsg
@@ -739,19 +862,19 @@ pub fn reply(
 
         },
 
-        // Reply from CS-One Contract Init
+        // Reply from JV-One Contract Init
         11 => {
             let res = parse_reply_instantiate_data(msg.clone())
             .map_err(|e| -> ContractError {
                 match e {
                     ParseReplyError::SubMsgFailure(x) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSONE_Init_SubMsgFailure".to_string(), v: x}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVONE_Init_SubMsgFailure".to_string(), v: x}
                     },
                     ParseReplyError::ParseFailure(y) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSONE_Init_ParseFailure".to_string(), v: y}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVONE_Init_ParseFailure".to_string(), v: y}
                     },
                     ParseReplyError::BrokenUtf8(_z) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSONE_Init_BrokenUtf8".to_string(), v: "n/e".to_string()}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVONE_Init_BrokenUtf8".to_string(), v: "n/e".to_string()}
                     },
                 }            
             })?;
@@ -772,24 +895,24 @@ pub fn reply(
             )?;
 
             return Ok(Response::new()
-                .add_attribute("Init CS-One Reply Success", format!("Faucet: {}", child_contract.to_string()))
+                .add_attribute("Init JV-One Reply Success", format!("Faucet: {}", child_contract.to_string()))
             );
 
         },
 
-        // Reply from CS-Two Contract Init
+        // Reply from JV-Two Contract Init
         12 => {
             let res = parse_reply_instantiate_data(msg.clone())
             .map_err(|e| -> ContractError {
                 match e {
                     ParseReplyError::SubMsgFailure(x) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSTWO_Init_SubMsgFailure".to_string(), v: x}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVTWO_Init_SubMsgFailure".to_string(), v: x}
                     },
                     ParseReplyError::ParseFailure(y) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSTWO_Init_ParseFailure".to_string(), v: y}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVTWO_Init_ParseFailure".to_string(), v: y}
                     },
                     ParseReplyError::BrokenUtf8(_z) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSTWO_Init_BrokenUtf8".to_string(), v: "n/e".to_string()}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVTWO_Init_BrokenUtf8".to_string(), v: "n/e".to_string()}
                     },
                 }            
             })?;
@@ -810,24 +933,24 @@ pub fn reply(
             )?;
 
             return Ok(Response::new()
-                .add_attribute("Init CS-Two Reply Success", format!("Faucet: {}", child_contract.to_string()))
+                .add_attribute("Init JV-Two Reply Success", format!("Faucet: {}", child_contract.to_string()))
             );
 
         },
 
-        // Reply from CS-Tre contract Init
+        // Reply from JV-Tre contract Init
         13 => {
             let res = parse_reply_instantiate_data(msg.clone())
             .map_err(|e| -> ContractError {
                 match e {
                     ParseReplyError::SubMsgFailure(x) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSTRE_Init_SubMsgFailure".to_string(), v: x}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVTRE_Init_SubMsgFailure".to_string(), v: x}
                     },
                     ParseReplyError::ParseFailure(y) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSTRE_Init_ParseFailure".to_string(), v: y}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVTRE_Init_ParseFailure".to_string(), v: y}
                     },
                     ParseReplyError::BrokenUtf8(_z) => {
-                        ContractError::SubMsgReplyFailure{p_r_e: "CSTRE_Init_BrokenUtf8".to_string(), v: "n/e".to_string()}
+                        ContractError::SubMsgReplyFailure{p_r_e: "JVTRE_Init_BrokenUtf8".to_string(), v: "n/e".to_string()}
                     },
                 }            
             })?;
@@ -848,7 +971,7 @@ pub fn reply(
             )?;
 
             return Ok(Response::new()
-                .add_attribute("Init CS-Tre Reply Success", format!("Faucet: {}", child_contract.to_string()))
+                .add_attribute("Init JV-Tre Reply Success", format!("Faucet: {}", child_contract.to_string()))
             );
 
         },
@@ -901,6 +1024,7 @@ pub fn get_state(deps: Deps) -> StdResult<Binary> {
 
     let neon_peepz_count = NPCOUNT.load(deps.storage)?.to_string();
     let shitty_kittyz_count = SKCOUNT.load(deps.storage)?.to_string();
+    let job_count = JOBINCREMENT.load(deps.storage)?.to_string();
 
     to_binary(&GetStateResponse {
         admin,
@@ -911,6 +1035,7 @@ pub fn get_state(deps: Deps) -> StdResult<Binary> {
         cw20_tre_faucet_address,
         neon_peepz_count,
         shitty_kittyz_count,
+        job_count
     })
 
 }

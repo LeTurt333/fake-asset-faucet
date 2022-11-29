@@ -5,11 +5,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 //pub use cw20::Cw20ExecuteMsg as ExecuteMsg;
 //pub type QueryMsg = cw721_base::QueryMsg<Empty>;
+use nois::NoisCallback;
 
 #[cw_serde]
 #[cfg_attr(test, derive(Default))]
 pub struct InstantiateMsg {
     pub admin: Option<String>,
+    pub nois_proxy: String
 }
 
 #[cw_serde]
@@ -26,6 +28,8 @@ pub enum ExecuteMsg {
     InitFaucetCw20Two{code_id: u64},
 
     InitFaucetCw20Tre{code_id: u64},
+
+    Receive{callback: NoisCallback},
 
     HitFaucetNft{},
 
@@ -49,6 +53,7 @@ pub struct GetStateResponse {
     pub cw20_tre_faucet_address: String,
     pub neon_peepz_count: String,
     pub shitty_kittyz_count: String,
+    pub job_count: String,
 }
 
 #[derive(Serialize, Deserialize, JsonSchema)]

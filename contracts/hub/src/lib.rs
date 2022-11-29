@@ -2,6 +2,7 @@ pub mod contract;
 mod error;
 pub mod msg;
 pub mod state;
+pub mod utils;
 pub use crate::error::ContractError;
 extern crate cw721_neon_peepz;
 extern crate cw721_shitty_kittyz;

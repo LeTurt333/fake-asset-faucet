@@ -21,4 +21,22 @@ pub enum ContractError {
     #[error("Invalid submsg id: {x}")]
     InvalidId {x: u64},
 
+    #[error("Invalid Proxy Address")]
+    InvalidProxyAddress,
+
+    #[error("Job ID too long")]
+    JobIdTooLong,
+
+    #[error("Serialization Error when hitting faucet")]
+    SerializeError,
+
+    #[error("Deserialization Error on proxy contract callback")]
+    DeserializeError,
+
+    #[error("Randomness returned is invalid")]
+    InvalidRandomness,
+
+    #[error("No Job Increment number found")]
+    NoJobIncrement
+
 }
