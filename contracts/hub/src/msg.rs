@@ -19,6 +19,8 @@ pub enum ExecuteMsg {
 
     UpdateAdmin{new_admin: String},
 
+    UpdateNois{new_addr: String},
+
     InitFaucetNeonPeepz{code_id: u64},
 
     InitFaucetShittyKittyz{code_id: u64},
@@ -51,6 +53,7 @@ pub struct GetStateResponse {
     pub cw20_one_faucet_address: String,
     pub cw20_two_faucet_address: String,
     pub cw20_tre_faucet_address: String,
+    pub nois_proxy_address: String,
     pub neon_peepz_count: String,
     pub shitty_kittyz_count: String,
     pub job_count: String,

@@ -77,6 +77,8 @@ pub fn instantiate(
     let validated = deps.api.addr_validate(&admin)?;
 
     //juno1tquqqdvlv3fwu5u6evpt7e4ss47zczug8tq4czjucgx8dulkhjxsegfuds
+    
+    //juno1v82su97skv6ucfqvuvswe0t5fph7pfsrtraxf0x33d8ylj5qnrysdvkc95
     let nois_proxy_addr = deps
         .api
         .addr_validate(&msg.nois_proxy)
@@ -118,6 +120,8 @@ pub fn execute(
     match msg {
         
         ExecuteMsg::UpdateAdmin {new_admin} => execute_update_admin(deps, &info.sender, new_admin),
+        ExecuteMsg::UpdateNois { new_addr } => execute_update_nois(deps, &info.sender, new_addr),
+
         ExecuteMsg::InitFaucetNeonPeepz{code_id} => execute_add_faucet_neon_peepz(deps, env, &info.sender, code_id),
         ExecuteMsg::InitFaucetShittyKittyz{code_id} => execute_add_faucet_shitty_kittyz(deps, env, &info.sender, code_id),
         ExecuteMsg::InitFaucetCw20One{code_id} => execute_add_faucet_cw20(deps, env, &info.sender, code_id),
@@ -406,13 +410,13 @@ pub fn execute_add_faucet_cw20_tre(
 
 pub fn execute_update_nois(
     deps: DepsMut,
-    sender: Addr,
+    sender: &Addr,
     new_addr: String,
 ) -> Result<Response, ContractError> {
 
     let config: Configuration = CONFIGURATION.load(deps.storage)?;
 
-    if config.admin != sender {
+    if &config.admin != sender {
         return Err(ContractError::Unauthorized{});
     }
 
@@ -1005,6 +1009,7 @@ pub fn get_state(deps: Deps) -> StdResult<Binary> {
         cw20_one_faucet_address,
         cw20_two_faucet_address,
         cw20_tre_faucet_address,
+        nois_proxy_address: config.nois_beacon.to_string(),
         neon_peepz_count,
         shitty_kittyz_count,
         job_count
