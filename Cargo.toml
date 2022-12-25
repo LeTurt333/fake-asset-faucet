@@ -10,11 +10,11 @@ publish = false
 keywords = ["cosmwasm", "nft"]
 
 [workspace.dependencies]
-cosmwasm-std = "1.1.0"
-cosmwasm-schema = "1.1.0"
-schemars = "0.8.10"
-serde = {version = "1.0.140", default-features = false, features = ["derive"]}
-cw-storage-plus = "0.15.1"
+cosmwasm-std = "1.1.9"
+cosmwasm-schema = "1.1.9"
+schemars = "0.8.11"
+serde = {version = "1.0.151", default-features = false, features = ["derive"]}
+cw-storage-plus = "1.0.1"
 
 [profile.release]
 rpath = false

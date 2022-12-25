@@ -23,11 +23,11 @@ schemars.workspace = true
 serde.workspace = true
 cw-storage-plus.workspace = true
 
-cw-utils = "0.15.0"
-cw2 = "0.15.0"
-cw20 = "0.15.0"
+cw-utils = "1.0.1"
+cw2 = "1.0.1"
+cw20 = "1.0.1"
 semver = "1"
-thiserror = "1.0.23"
+thiserror = "1.0.38"
 
 [dev-dependencies]
-cw-multi-test = "0.15.0"
+cw-multi-test = "0.16.2"
