@@ -26,22 +26,22 @@ pub fn make_mint_submsgs(
 ) -> Result<Vec<SubMsg>, ContractError> {
 
     // Shitty Kittyz only has 1 arbritary trait: Fur Color, which is 1 of 3 options
-    let sktrait = int_in_range(randomness, 1u32..=3u32);
+    let sktrait = int_in_range(randomness, 1u32, 3u32);
 
     // Neon Peepz have 2 arbitrary traits, so we get 2 rand numbers
-    let [nptrait1, nptrait2] = ints_in_range(randomness, 1u32..=2u32);
+    let nptraits = ints_in_range(randomness, 2, 1_u32, 2_u32);
 
     // Legend Catch numbers
-    let [sk_legend_catch, np_legend_catch] = ints_in_range(randomness, 1u32..=333u32);
+    let legend_catch = ints_in_range(randomness, 2, 1_u32, 333_u32);
 
     let np_metadata = generate_np_metadata(
-        np_legend_catch, 
-        nptrait1,
-        nptrait2
+        legend_catch[1], 
+        nptraits[0],
+        nptraits[1]
     );
 
     let sk_metadata = generate_sk_metadata(
-        sk_legend_catch,
+        legend_catch[0],
         sktrait,
     );
 

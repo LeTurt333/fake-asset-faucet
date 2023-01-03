@@ -31,7 +31,7 @@ pub enum ExecuteMsg {
 
     InitFaucetCw20Tre{code_id: u64},
 
-    Receive{callback: NoisCallback},
+    NoisReceive{callback: NoisCallback},
 
     HitFaucetNft{},
 

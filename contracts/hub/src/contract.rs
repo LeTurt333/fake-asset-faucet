@@ -39,9 +39,9 @@ use nois::{
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json_wasm::*;
-use serde_cw_value::*;
-use serde::de::DeserializeOwned;
+// use serde_json_wasm::*;
+// use serde_cw_value::*;
+// use serde::de::DeserializeOwned;
 
 // The Commons
 use crate::msg::*;
@@ -133,7 +133,7 @@ pub fn execute(
         ExecuteMsg::HitFaucetCw20s{} => execute_hit_faucet_cw20s(deps.as_ref(), info, env),
 
         // Nois Callback
-        ExecuteMsg::Receive { callback } => execute_nois_callback(deps, env, info, callback),
+        ExecuteMsg::NoisReceive { callback } => execute_nois_callback(deps, env, info, callback),
     }
 }
 
@@ -518,7 +518,7 @@ pub struct JobId {
 pub fn execute_hit_faucet_nft(
     deps: DepsMut,
     info: MessageInfo,
-    env: Env,
+    _env: Env,
     //job_id: String
 ) -> Result<Response, ContractError> {
 
@@ -619,8 +619,8 @@ pub fn execute_nois_callback(
     // Create subrandomness provider
     let mut provider = sub_randomness_with_key(base_rand, de_job_id.id.to_string());
     // need to deref out of Box here?
-    let randomness = provider.provide();        
-
+    let randomness = provider.provide(); 
+    
     // pull token counts from state to use as the token_id
     let np_count = NPCOUNT.load(deps.storage)?;
     let sk_count = SKCOUNT.load(deps.storage)?;
